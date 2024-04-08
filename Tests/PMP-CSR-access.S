@@ -25,7 +25,7 @@ rvtest_entry_point:
 RVMODEL_BOOT
 RVTEST_CODE_BEGIN
 #ifdef TEST_CASE_1
-    RVTEST_CASE(1,"//check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*); def rvtest_mtrap_routine=True; def TEST_CASE_1=True",pmp_access_permission)
+    RVTEST_CASE(1,"//check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*); def rvtest_mtrap_routine=True; def TEST_CASE_1=True",PMP_access_permission)
 RVTEST_SIGBASE( x13,signature_x13_1)
 	.option nopic
 	.attribute unaligned_access, 0
@@ -45,9 +45,15 @@ main:
 	.set pmpcfgi, pmpcfgi+1		// increment variable to next pmpcfg reg
 	.endr			// END OF LOOP BODY
 	// Loop to SET ALL pmpaddr REGs to zero
+	// Loop to SET ALL pmpaddr REGs to zero
 	.set pmpaddri, PMPADDR0	// Initialize an iterating variable with the address of pmpaddr0
 	.rept 16		// START OF LOOP
 	csrc pmpaddri, a5	// Set all pmpaddr regs to zero (initial value)
+	.set pmpaddri, pmpaddri+1		// increment variable pmpaddri to the next pmpaddr reg
+	.endr			// END OF LOOP BODY
+	.set pmpaddri, PMPADDR0	// Initialize an iterating variable with the address of pmpaddr0
+	.rept 16		// START OF LOOP
+	csrs pmpaddri, a5	// Set all pmpaddr regs to zero (initial value)
 	.set pmpaddri, pmpaddri+1		// increment variable pmpaddri to the next pmpaddr reg
 	.endr			// END OF LOOP BODY
 //////////////// VERIFICATION /////////////////////////////////////////

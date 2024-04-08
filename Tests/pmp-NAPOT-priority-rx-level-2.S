@@ -5,8 +5,8 @@
 //
 // This test belongs to the test plan for RISC-V Privilege Arch Compliance developed by 10xEngineers
 // which can be found here: https://docs.google.com/spreadsheets/d/1p13gic7BD6aq7n_dHrqti4QmlGpxY7FkF17RVbG4DC0/edit?usp=sharing
-/*	Test Name: pmp-TOR-priority-rw.S
-// Tests the priority by assigning only rw permissions to the high priority while R-W-X to low priority region
+/*	Test Name: pmp-NAPOT-priority-rx-level-2.S
+// Tests the priority by assigning only R,X permissions to the highest priority while no permissions to high priority region and R-W-X to low priority region
 */
 
 #include "model_test.h"
@@ -20,7 +20,7 @@ RVMODEL_BOOT
 RVTEST_CODE_BEGIN
 
 #ifdef TEST_CASE_1
-    RVTEST_CASE(1,"//check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*); def rvtest_mtrap_routine=True; def rvtest_strap_routine=True; def TEST_CASE_1=True",PMP_TOR_priority_rw)
+    RVTEST_CASE(1,"//check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*); def rvtest_mtrap_routine=True; def rvtest_strap_routine=True; def TEST_CASE_1=True",PMP_NAPOT_priority_rx_level_2)
 RVTEST_SIGBASE( x13,signature_x13_1)
 
 	.attribute unaligned_access, 0
@@ -71,19 +71,26 @@ main:
 #define PMPREGION1      ((((PMP_R|PMP_W|PMP_X|PMP_L|PMP_TOR)&0xFF) << PMP3_CFG_SHIFT))
 // ------------------------------------------------------------------------------------------------
 // pmpcfg0[31:24] value to configure address (RAM_LOCATION_FOR_TEST)->(RETURN_INSTRUCTION). This is the high priority region
+// in TOR Mode with nothing enabled
+// THIS REGION CONSISTS OF ONLY ONE INSTRUCTION
+#define PMPREGION2      ((((PMP_L|PMP_TOR)&0xFF) << PMP3_CFG_SHIFT))
+// ------------------------------------------------------------------------------------------------
+// pmpcfg0[15:8] value to configure address (TEST_FOR_EXECUTION)->(RETURN_INSTRUCTION). This is the high priority region
 // in TOR Mode with R enabled =========> THIS IS OUR REGION UNDER OBSERVATION.
 // THIS REGION CONSISTS OF ONLY ONE INSTRUCTION
-#define PMPREGION2      ((((PMP_R|PMP_W|PMP_L|PMP_TOR)&0xFF) << PMP3_CFG_SHIFT))
+#define PMPREGION3      ((((PMP_R|PMP_X|PMP_L|PMP_NAPOT)&0xFF) << PMP1_CFG_SHIFT))
 // ------------------------------------------------------------------------------------------------
 // MACROS TO DECLARE THE VALUES TO BE STORED IN PMPADDR registers
 // PMPADDRESS14 = value to be loaded pmpaddr14 to declare lower address of Region-1
 #define PMPADDRESS14	0x80000000 		// value to be loaded pmpaddr14 to declare region1
 // PMPADDRESS15 = value to be loaded pmpaddr15 to declare upper address of Region-1
 #define PMPADDRESS15	PMP_region_High	
-// PMPADDRESS2 = value to be loaded pmpaddr3 to declare lower address of Region-2
+// PMPADDRESS2 = value to be loaded pmpaddr2 to declare lower address of Region-2
 #define PMPADDRESS2	RAM_LOCATION_FOR_TEST	
 // PMPADDRESS3 = value to be loaded pmpaddr3 to declare upper address of Region-2
 #define PMPADDRESS3	RETURN_INSTRUCTION
+// PMPADDRESS3 = value to be loaded pmpaddr1 to declare upper address of Region-3
+#define PMPADDRESS1	TEST_FOR_EXECUTION
                                                                   
     /* SET UP DATA IN THE MEMORY */
 	csrw satp, x0			// Disable Address Translation
@@ -109,6 +116,10 @@ main:
 	srl x4, x4, PMP_SHIFT		// Shift right by 2 times
 	csrw 	pmpaddr3, x4		// Updated pmpaddr3
 	nop				// Added nop in case of trap
+    	LA(x4, PMPADDRESS1)		// Value to be stored in pmpaddr1
+	srl x4, x4, PMP_SHIFT		// Shift right by 2 times
+	csrw 	pmpaddr1, x4		// Updated pmpaddr1
+	nop				// Added nop in case of trap
     /* Decalring pmp configuration register */
 	LI(x4, PMPREGION1)	
 	// Value to be stored in pmpcfg register
@@ -116,6 +127,10 @@ main:
 	nop				// Added nop in case of trap
 	LI(x4, PMPREGION2)	
 	// Value to be stored in pmpcfg1 register
+	csrs pmpcfg0, x4		// Updated pmpcfg0
+	nop				// Added nop in case of trap
+	LI(x4, PMPREGION3)	
+	// Value to be stored in pmpcfg register
 	csrs pmpcfg0, x4		// Updated pmpcfg0
 	nop				// Added nop in case of trap
 //////////// ALL PMP REGIONS DECLARED //////////////////////////////////////////////
@@ -135,7 +150,7 @@ main:
 	j exit
 
 RAM_LOCATION_FOR_TEST:
-	.fill 0*(XLEN/32),4,NOP
+	.fill 3*(XLEN/32),4,NOP
 TEST_FOR_EXECUTION:
 	addi x9,x9,0x01		// A TEST INSTRUCTION TO TEST THE EXECUTION CHECK ON PMP REGION
 RETURN_INSTRUCTION:

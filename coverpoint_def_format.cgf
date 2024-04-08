@@ -266,7 +266,7 @@ PMP_TOR_priority_r:
     mode == {'M','S','U'} and (mcause == 0x07): 0                                             #Write fault
     mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0     #execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg3 >> 24) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
     : 0
 
 PMP_TOR_priority_x:
@@ -284,7 +284,7 @@ PMP_TOR_priority_x:
     mode == {'M','S','U'} and (mcause != 0x01): 0                                             #No read fault
     mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                     #Write, Execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
     : 0
 
 PMP_TOR_priority_rw:
@@ -302,7 +302,7 @@ PMP_TOR_priority_rw:
     mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                     #No read, write fault
     mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0     #execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8B) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8B) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
     : 0
 
 PMP_TOR_priority_rx:
@@ -320,7 +320,7 @@ PMP_TOR_priority_rx:
     mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                   #No read, execute fault
     mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
     : 0
 
 PMP_TOR_priority_r_level_2:
@@ -336,8 +336,8 @@ PMP_TOR_priority_r_level_2:
     (old("pmpaddr{2, 3, 14, 15, 0, 1}")) ^ (pmpaddr$1) != 0x00: 0                           #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                          	#No read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                         	#Write fault
+    mode == {'M','S','U'} and (mcause != 0x05): 0                                           #No read fault
+    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
     mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
     #check for the accesses
     ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
@@ -488,15 +488,77 @@ PMP_NAPOT_priority_rx:
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x9D) and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3 << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))': 0
 
 PMP_NAPOT_priority_r_level_2:
+  config:
+    - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  mnemonics:
+    "{csrrs, csrrw, lw, sw}" : 0
+  csr_comb:
+    ((pmpcfg3 >> 24) & {0x8C, 0x8A, 0x89}) == (0x8F & $1): 0                                #Read, Write, execute Permission given to low priority region
+    ((pmpcfg0 >> 24) & {0x8C, 0x8A, 0x89}) == (0x88 & $1): 0                                #No Permission given to high priority region
+    ((pmpcfg0 >> 8) & {0x9C, 0x9A, 0x99}) == (0x99 & $1): 0                                 #Read Permission given to highest priority region
+    pmpcfg{0, 3} != 0 and ((old("pmpcfg$1")) ^ (pmpcfg$1) != 0x00): 0                       #pmpcfg0(H.S.P) and pmpcfg0(H.P) and pmpcfg3(L.P) have been updated
+    (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
+  val_comb:
+    #Test for exceptions
+    mode == {'M','S','U'} and (mcause != 0x05): 0                                           #No read fault
+    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    #check for the accesses
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x99) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
+PMP_NAPOT_priority_rw_level_2:
+  config:
+    - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  mnemonics:
+    "{csrrs, csrrw, lw, sw}" : 0
+  csr_comb:
+    ((pmpcfg3 >> 24) & {0x8C, 0x8A, 0x89}) == (0x8F & $1): 0                                #Read, Write, execute Permission given to low priority region
+    ((pmpcfg0 >> 24) & {0x8C, 0x8A, 0x89}) == (0x88 & $1): 0                                #No Permission given to high priority region
+    ((pmpcfg0 >> 8) & {0x9C, 0x9A, 0x99}) == (0x9B & $1): 0                                 #Read, Write Permission given to highest priority region
+    pmpcfg{0, 3} != 0 and ((old("pmpcfg$1")) ^ (pmpcfg$1) != 0x00): 0                       #pmpcfg0(H.S.P) and pmpcfg0(H.P) and pmpcfg3(L.P) have been updated
+    (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
+  val_comb:
+    #Test for exceptions
+    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                   #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    #check for the accesses
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9B) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
+PMP_NAPOT_priority_x_level_2:
+  config:
+    - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  mnemonics:
+    "{csrrs, csrrw, lw, sw}" : 0
+  csr_comb:
+    ((pmpcfg3 >> 24) & {0x8C, 0x8A, 0x89}) == (0x8F & $1): 0                                #Read, Write, execute Permission given to low priority region
+    ((pmpcfg0 >> 24) & {0x8C, 0x8A, 0x89}) == (0x88 & $1): 0                                #No Permission given to high priority region
+    ((pmpcfg0 >> 8) & {0x9C, 0x9A, 0x99}) == (0x9C & $1): 0                                 #Execute Permission given to highest priority region
+    pmpcfg{0, 3} != 0 and ((old("pmpcfg$1")) ^ (pmpcfg$1) != 0x00): 0                       #pmpcfg0(H.S.P) and pmpcfg0(H.P) and pmpcfg3(L.P) have been updated
+    (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
+  val_comb:
+    #Test for exceptions
+    mode == {'M','S','U'} and (mcause != 0x01): 0                                           #No execute fault
+    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                   #Read, write fault
+    #check for the accesses
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9C) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
-
-
-
-
-
-
+PMP_NAPOT_priority_rx_level_2:
+  config:
+    - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  mnemonics:
+    "{csrrs, csrrw, lw, sw}" : 0
+  csr_comb:
+    ((pmpcfg3 >> 24) & {0x8C, 0x8A, 0x89}) == (0x8F & $1): 0                                #Read, Write, execute Permission given to low priority region
+    ((pmpcfg0 >> 24) & {0x8C, 0x8A, 0x89}) == (0x88 & $1): 0                                #No Permission given to high priority region
+    ((pmpcfg0 >> 8) & {0x9C, 0x9A, 0x99}) == (0x9D & $1): 0                                 #Read, Execute Permission given to highest priority region
+    pmpcfg{0, 3} != 0 and ((old("pmpcfg$1")) ^ (pmpcfg$1) != 0x00): 0                       #pmpcfg0(H.S.P) and pmpcfg0(H.P) and pmpcfg3(L.P) have been updated
+    (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
+  val_comb:
+    #Test for exceptions
+    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                   #No read, execute fault
+    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Read, write fault
+    #check for the accesses
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9D) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
 PMP_NA4_priority_r:
   config:
@@ -649,3 +711,14 @@ pmp_cfg_locked_write_unrelated:
                                                                                                               #other writes are ignored
     (pmpcfg{0 ... 3}  >> {0, 8, 16, 24} & 0x80 == 0x80) and ((old("pmpcfg$1") & (0xFF << $2)) ^ (pmpcfg$1 & (0xFF << $2)) == 0x00): 0 
     ((old("pmpaddr{0 ... 15}")) ^ (pmpaddr$1) == 0x00) and (pmpcfg{0,1,2,3}{[$1/4]} >> {0, 8, 16, 24}{[$1/4]} & 0x80 == 0x80): 0                                 #any other write ignored
+
+PMP_access_permission:
+  config:
+    - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  mnemonics:
+    "{csrrs, csrrw, lw, sw}" : 0
+  csr_comb:
+    mode == 'M' and (((old("pmpcfg{0 ... 3}") ^ (pmpcfg$1)) != 0x00) and pmpcfg$1 != 0x0): 0        #pmpcfg successfully updated in M mode
+    mode == 'M' and (((old("pmpaddr{0 ... 15}") ^ (pmpaddr$1)) != 0x00) and pmpaddr$1 != 0x0): 0    #pmpaddr successfully updated in M mode
+  val_comb:
+    mnemonic == {"csrrs", "csrrw"} and mode == {'S', 'U'} and mcause == 0x02: 0                     #check for illegal instruction fault

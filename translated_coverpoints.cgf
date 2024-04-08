@@ -1,0 +1,1119 @@
+PMP_NA4_priority_r:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x91) == (0x91 & 0x91): 0
+    ((pmpcfg0 >> 24) & 0x92) == (0x91 & 0x92): 0
+    ((pmpcfg0 >> 24) & 0x94) == (0x91 & 0x94): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr3 << 2)): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NA4_priority_r_level_2:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x88 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x88 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x88 & 0x8C): 0
+    ((pmpcfg0 >> 8) & 0x91) == (0x91 & 0x91): 0
+    ((pmpcfg0 >> 8) & 0x92) == (0x91 & 0x92): 0
+    ((pmpcfg0 >> 8) & 0x94) == (0x91 & 0x94): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr1 << 2)): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NA4_priority_rw:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x91) == (0x93 & 0x91): 0
+    ((pmpcfg0 >> 24) & 0x92) == (0x93 & 0x92): 0
+    ((pmpcfg0 >> 24) & 0x94) == (0x93 & 0x94): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr3 << 2)): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_NA4_priority_rw_level_2:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x88 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x88 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x88 & 0x8C): 0
+    ((pmpcfg0 >> 8) & 0x91) == (0x93 & 0x91): 0
+    ((pmpcfg0 >> 8) & 0x92) == (0x93 & 0x92): 0
+    ((pmpcfg0 >> 8) & 0x94) == (0x93 & 0x94): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr1 << 2)): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_NA4_priority_rx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x91) == (0x95 & 0x91): 0
+    ((pmpcfg0 >> 24) & 0x92) == (0x95 & 0x92): 0
+    ((pmpcfg0 >> 24) & 0x94) == (0x95 & 0x94): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr3 << 2)): 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NA4_priority_x:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x91) == (0x94 & 0x91): 0
+    ((pmpcfg0 >> 24) & 0x92) == (0x94 & 0x92): 0
+    ((pmpcfg0 >> 24) & 0x94) == (0x94 & 0x94): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr3 << 2)): 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause == 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause == 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause == 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NA4_r:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x91) == (0x91 & 0x91): 0
+    ((pmpcfg0 >> 8) & 0x92) == (0x91 & 0x92): 0
+    ((pmpcfg0 >> 8) & 0x94) == (0x91 & 0x94): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr1 << 2)): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NA4_rw:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x91) == (0x93 & 0x91): 0
+    ((pmpcfg0 >> 8) & 0x92) == (0x93 & 0x92): 0
+    ((pmpcfg0 >> 8) & 0x94) == (0x93 & 0x94): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr1 << 2)): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_NA4_rwx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x91) == (0x97 & 0x91): 0
+    ((pmpcfg0 >> 8) & 0x92) == (0x97 & 0x92): 0
+    ((pmpcfg0 >> 8) & 0x94) == (0x97 & 0x94): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x97) and (rs1_val + imm_val == (pmpaddr1 << 2)): 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_NA4_rx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x91) == (0x95 & 0x91): 0
+    ((pmpcfg0 >> 8) & 0x92) == (0x95 & 0x92): 0
+    ((pmpcfg0 >> 8) & 0x94) == (0x95 & 0x94): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr1 << 2)): 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NA4_x:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x91) == (0x94 & 0x91): 0
+    ((pmpcfg0 >> 8) & 0x92) == (0x94 & 0x92): 0
+    ((pmpcfg0 >> 8) & 0x94) == (0x94 & 0x94): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr1 << 2)): 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause == 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause == 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause == 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NAPOT_priority_r:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x99) == (0x99 & 0x99): 0
+    ((pmpcfg0 >> 24) & 0x9A) == (0x99 & 0x9A): 0
+    ((pmpcfg0 >> 24) & 0x9C) == (0x99 & 0x9C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x99)
+      and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3
+      << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NAPOT_priority_rw:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x99) == (0x9B & 0x99): 0
+    ((pmpcfg0 >> 24) & 0x9A) == (0x9B & 0x9A): 0
+    ((pmpcfg0 >> 24) & 0x9C) == (0x9B & 0x9C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x9B)
+      and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3
+      << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_NAPOT_priority_rx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x99) == (0x9D & 0x99): 0
+    ((pmpcfg0 >> 24) & 0x9A) == (0x9D & 0x9A): 0
+    ((pmpcfg0 >> 24) & 0x9C) == (0x9D & 0x9C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x9D)
+      and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3
+      << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NAPOT_priority_x:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x99) == (0x9C & 0x99): 0
+    ((pmpcfg0 >> 24) & 0x9A) == (0x9C & 0x9A): 0
+    ((pmpcfg0 >> 24) & 0x9C) == (0x9C & 0x9C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x9C)
+      and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3
+      << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause == 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause == 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause == 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_NAPOT_r:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x99) == (0xF9 & 0x99): 0
+    ((pmpcfg0 >> 8) & 0x9A) == (0xF9 & 0x9A): 0
+    ((pmpcfg0 >> 8) & 0x9C) == (0xF9 & 0x9C): 0
+    pmpaddr0 != 0 and ((old("pmpaddr0")) ^ (pmpaddr0) != 0x00): 0
+    pmpaddr1 != 0 and ((old("pmpaddr1")) ^ (pmpaddr1) != 0x00): 0
+    pmpaddr2 != 0 and ((old("pmpaddr2")) ^ (pmpaddr2) != 0x00): 0
+    pmpaddr3 != 0 and ((old("pmpaddr3")) ^ (pmpaddr3) != 0x00): 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x99) and
+      (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1
+      << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x01): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x05): 0
+PMP_NAPOT_rw:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x99) == (0xFB & 0x99): 0
+    ((pmpcfg0 >> 8) & 0x9A) == (0xFB & 0x9A): 0
+    ((pmpcfg0 >> 8) & 0x9C) == (0xFB & 0x9C): 0
+    pmpaddr0 != 0 and ((old("pmpaddr0")) ^ (pmpaddr0) != 0x00): 0
+    pmpaddr1 != 0 and ((old("pmpaddr1")) ^ (pmpaddr1) != 0x00): 0
+    pmpaddr2 != 0 and ((old("pmpaddr2")) ^ (pmpaddr2) != 0x00): 0
+    pmpaddr3 != 0 and ((old("pmpaddr3")) ^ (pmpaddr3) != 0x00): 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9B) and
+      (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1
+      << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_NAPOT_rwx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x99) == (0xFF & 0x99): 0
+    ((pmpcfg0 >> 8) & 0x9A) == (0xFF & 0x9A): 0
+    ((pmpcfg0 >> 8) & 0x9C) == (0xFF & 0x9C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9F) and
+      (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1
+      << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_NAPOT_rx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x99) == (0xFD & 0x99): 0
+    ((pmpcfg0 >> 8) & 0x9A) == (0xFD & 0x9A): 0
+    ((pmpcfg0 >> 8) & 0x9C) == (0xFD & 0x9C): 0
+    pmpaddr0 != 0 and ((old("pmpaddr0")) ^ (pmpaddr0) != 0x00): 0
+    pmpaddr1 != 0 and ((old("pmpaddr1")) ^ (pmpaddr1) != 0x00): 0
+    pmpaddr2 != 0 and ((old("pmpaddr2")) ^ (pmpaddr2) != 0x00): 0
+    pmpaddr3 != 0 and ((old("pmpaddr3")) ^ (pmpaddr3) != 0x00): 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9D) and
+      (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1
+      << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+PMP_NAPOT_x:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 8) & 0x99) == (0xFC & 0x99): 0
+    ((pmpcfg0 >> 8) & 0x9A) == (0xFC & 0x9A): 0
+    ((pmpcfg0 >> 8) & 0x9C) == (0xFC & 0x9C): 0
+    pmpaddr0 != 0 and ((old("pmpaddr0")) ^ (pmpaddr0) != 0x00): 0
+    pmpaddr1 != 0 and ((old("pmpaddr1")) ^ (pmpaddr1) != 0x00): 0
+    pmpaddr2 != 0 and ((old("pmpaddr2")) ^ (pmpaddr2) != 0x00): 0
+    pmpaddr3 != 0 and ((old("pmpaddr3")) ^ (pmpaddr3) != 0x00): 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9C) and
+      (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1
+      << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause == 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x01): 0
+PMP_TOR_priority_r:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x89 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x89 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x89 & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg3 >> 24) & 0x9F == 0x89)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_TOR_priority_r_level_2:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x88 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x88 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x88 & 0x8C): 0
+    ((pmpcfg0 >> 8) & 0x89) == (0x89 & 0x89): 0
+    ((pmpcfg0 >> 8) & 0x8A) == (0x89 & 0x8A): 0
+    ((pmpcfg0 >> 8) & 0x8C) == (0x89 & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x89) and
+      (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 <<
+      2))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_TOR_priority_rw:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x8B & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x8B & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x8B & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8B)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_TOR_priority_rw_level_2:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x88 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x88 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x88 & 0x8C): 0
+    ((pmpcfg0 >> 8) & 0x89) == (0x8B & 0x89): 0
+    ((pmpcfg0 >> 8) & 0x8A) == (0x8B & 0x8A): 0
+    ((pmpcfg0 >> 8) & 0x8C) == (0x8B & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8B) and
+      (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 <<
+      2))
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and mode_change == 'M to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'S to M' and (mcause == 0x01): 0
+    mode == 'M' and mode_change == 'U to M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_TOR_priority_rwx_level_2:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x88 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x88 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x88 & 0x8C): 0
+    ((pmpcfg0 >> 8) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg0 >> 8) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg0 >> 8) & 0x8C) == (0x8F & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8F) and
+      (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 <<
+      2))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_TOR_priority_rx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x8D & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x8D & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x8D & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8D)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_TOR_priority_rx_level_2:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x88 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x88 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x88 & 0x8C): 0
+    ((pmpcfg0 >> 8) & 0x89) == (0x8D & 0x89): 0
+    ((pmpcfg0 >> 8) & 0x8A) == (0x8D & 0x8A): 0
+    ((pmpcfg0 >> 8) & 0x8C) == (0x8D & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8D) and
+      (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 <<
+      2))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_TOR_priority_x:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x8C & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x8C & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x8C & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8C)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause == 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause == 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause == 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_TOR_priority_x_level_2:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 24) & 0x89) == (0x88 & 0x89): 0
+    ((pmpcfg0 >> 24) & 0x8A) == (0x88 & 0x8A): 0
+    ((pmpcfg0 >> 24) & 0x8C) == (0x88 & 0x8C): 0
+    ((pmpcfg0 >> 8) & 0x89) == (0x8C & 0x89): 0
+    ((pmpcfg0 >> 8) & 0x8A) == (0x8C & 0x8A): 0
+    ((pmpcfg0 >> 8) & 0x8C) == (0x8C & 0x8C): 0
+    ((pmpcfg3 >> 24) & 0x89) == (0x8F & 0x89): 0
+    ((pmpcfg3 >> 24) & 0x8A) == (0x8F & 0x8A): 0
+    ((pmpcfg3 >> 24) & 0x8C) == (0x8F & 0x8C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr14")) ^ (pmpaddr14) != 0x00: 0
+    (old("pmpaddr15")) ^ (pmpaddr15) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg3 != 0 and ((old("pmpcfg3")) ^ (pmpcfg3) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8C) and
+      (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 <<
+      2))
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause == 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause == 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause == 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_TOR_r:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 16) & 0x99) == (0x89 & 0x99): 0
+    ((pmpcfg0 >> 16) & 0x9A) == (0x89 & 0x9A): 0
+    ((pmpcfg0 >> 16) & 0x9C) == (0x89 & 0x9C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x89)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))')
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x01): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x05): 0
+PMP_TOR_rw:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 16) & 0x99) == (0x8B & 0x99): 0
+    ((pmpcfg0 >> 16) & 0x9A) == (0x8B & 0x9A): 0
+    ((pmpcfg0 >> 16) & 0x9C) == (0x8B & 0x9C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x89)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))')
+    : 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'M' and (mcause == 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_TOR_rwx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 16) & 0x99) == (0x8F & 0x99): 0
+    ((pmpcfg0 >> 16) & 0x9A) == (0x8F & 0x9A): 0
+    ((pmpcfg0 >> 16) & 0x9C) == (0x8F & 0x9C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x8F)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))')
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause != 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause != 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause != 0x07): 0
+PMP_TOR_rx:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 16) & 0x89) == (0x8D & 0x89): 0
+    ((pmpcfg0 >> 16) & 0x8A) == (0x8D & 0x8A): 0
+    ((pmpcfg0 >> 16) & 0x8C) == (0x8D & 0x8C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x8D)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))')
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause != 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause != 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause != 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0
+PMP_TOR_x:
+  config:
+  - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
+  csr_comb:
+    ((pmpcfg0 >> 16) & 0x89) == (0x8C & 0x89): 0
+    ((pmpcfg0 >> 16) & 0x8A) == (0x8C & 0x8A): 0
+    ((pmpcfg0 >> 16) & 0x8C) == (0x8C & 0x8C): 0
+    (old("pmpaddr0")) ^ (pmpaddr0) != 0x00: 0
+    (old("pmpaddr1")) ^ (pmpaddr1) != 0x00: 0
+    (old("pmpaddr2")) ^ (pmpaddr2) != 0x00: 0
+    (old("pmpaddr3")) ^ (pmpaddr3) != 0x00: 0
+    pmpcfg0 != 0 and ((old("pmpcfg0")) ^ (pmpcfg0) != 0x00): 0
+    pmpcfg1 != 0 and ((old("pmpcfg1")) ^ (pmpcfg1) != 0x00): 0
+  mnemonics:
+    csrrs: 0
+    csrrw: 0
+    lw: 0
+    sw: 0
+  val_comb:
+    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x8C)
+      and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1
+      << 2))')
+    : 0
+    mode == 'M' and (mcause != 0x01): 0
+    mode == 'M' and (mcause == 0x05): 0
+    mode == 'M' and (mcause == 0x07): 0
+    mode == 'S' and (mcause != 0x01): 0
+    mode == 'S' and (mcause == 0x05): 0
+    mode == 'S' and (mcause == 0x07): 0
+    mode == 'U' and (mcause != 0x01): 0
+    mode == 'U' and (mcause == 0x05): 0
+    mode == 'U' and (mcause == 0x07): 0

@@ -86,10 +86,6 @@ main:
     /* SET UP DATA IN THE MEMORY */
 	csrw satp, x0			// Disable Address Translation
 // PMP Configuration
-/* PMP is configure in the following order:
-1. Address 0x8000 0000 to Address RVMODEL_DATA_END => PMP TOR (Low Priority) Region with RWX enabled. For this purpose, pmpaddr14 has been given the value of 0 and pmpaddr15 is given address to RVMODEL_DATA_END to declare the region from 0->RVMODEL_DATA_END into a single PMP region.
-
-2. Address TEST_FOR_EXECUTION to Address RETURN_INSTRUCTION 
 
     /* Assigning addresses to PMP address registers */
     	LI(x4, PMPADDRESS14)		// Value to be stored in pmpaddr14

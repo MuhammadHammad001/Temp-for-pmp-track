@@ -1,3 +1,4 @@
+
 // -----------
 // Copyright (c) 2020. RISC-V International. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
@@ -5,10 +6,10 @@
 //
 // This test belongs to the test plan for RISC-V Privilege Arch Compliance developed by 10xEngineers
 // which can be found here: https://docs.google.com/spreadsheets/d/1p13gic7BD6aq7n_dHrqti4QmlGpxY7FkF17RVbG4DC0/edit?usp=sharing
-/*	Test Name: pmp-NA4-priority-x.S
+/*	Test Name: pmp-NA4-priority-r.S
 //	PMP Test in NA4 address matching mode
 //	Description:
-// Tests the priority by assigning only X permissions to the high priority while R-W-X to low priority region
+// Tests the priority by assigning only R permissions to the high priority while R-W-X to low priority region
 */
 
 #include "model_test.h"
@@ -22,7 +23,7 @@ RVMODEL_BOOT
 RVTEST_CODE_BEGIN
 
 #ifdef TEST_CASE_1
-    RVTEST_CASE(1,"//check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*); def rvtest_mtrap_routine=True; def rvtest_strap_routine=True; def TEST_CASE_1=True",PMP_NA4_priority_x)
+    RVTEST_CASE(1,"//check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*); def rvtest_mtrap_routine=True; def rvtest_strap_routine=True; def TEST_CASE_1=True",PMP_NA4_priority_r)
 RVTEST_SIGBASE( x13,signature_x13_1)
 	.attribute unaligned_access, 0
 	.attribute stack_align, 16
@@ -74,7 +75,7 @@ main:
 // pmpcfg0[31:24] value to configure address (TEST_FOR_EXECUTION)->(RETURN_INSTRUCTION)
 // in NAPOT Mode with R enabled =========> THIS IS OUR REGION UNDER OBSERVATION.
 // THIS REGION CONSISTS OF ONLY ONE INSTRUCTION
-#define PMPREGION2      ((((PMP_L|PMP_X|PMP_NA4)&0xFF) << PMP3_CFG_SHIFT))
+#define PMPREGION2      ((((PMP_L|PMP_R|PMP_NA4)&0xFF) << PMP3_CFG_SHIFT))
 // ------------------------------------------------------------------------------------------------
 // MACROS TO DECLARE THE VALUES TO BE STORED IN PMPADDR registers
 #define PMPADDRESS14	0x80000000 // value to be loaded pmpaddr0 to declare region1
@@ -86,10 +87,6 @@ main:
     /* SET UP DATA IN THE MEMORY */
 	csrw satp, x0			// Disable Address Translation
 // PMP Configuration
-/* PMP is configure in the following order:
-1. Address 0x8000 0000 to Address RVMODEL_DATA_END => PMP TOR (Low Priority) Region with RWX enabled. For this purpose, pmpaddr14 has been given the value of 0 and pmpaddr15 is given address to RVMODEL_DATA_END to declare the region from 0->RVMODEL_DATA_END into a single PMP region.
-
-2. Address TEST_FOR_EXECUTION 
 
     /* Assigning addresses to PMP address registers */
     	LI(x4, PMPADDRESS14)		// Value to be stored in pmpaddr14

@@ -1,6 +1,6 @@
-#Load access fault  --> 0x05
-#Store access fault --> 0x07
-#Fetch access fault --> 0x01
+#Load access fault  --> ${CAUSE_LOAD_ACCESS}
+#Store access fault --> ${CAUSE_STORE_ACCESS}
+#Fetch access fault --> ${CAUSE_FETCH_ACCESS}
 PMP_NAPOT_r:
   config:
   - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
@@ -10,12 +10,12 @@ PMP_NAPOT_r:
     #0x99 & 0xF9 = 0x99  | 0x9A & 0xF9 = 0x98 | 0x9C & 0xF9 = 0x98
     ((pmpcfg0 >> 8) & {0x99, 0x9A, 0x9C}) == (0xF9 & $1): 0                                   #No write, Execute permission
     pmpcfg{0 ... 1} != 0 and ((old("pmpcfg$1")) ^ (pmpcfg$1) != 0x00): 0                      #pmpcfg have been updated
-    pmpaddr{0 ... 3} != 0 and ((old("pmpaddr$1")) ^ (pmpaddr$1) != 0x00): 0
+    pmpaddr{0 ... 3} != 0 and ((old("pmpaddr$1")) ^ (pmpaddr$1) != 0x00): 0                   #pmpaddr have been updated
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                             #No read fault
-    mode == 'M' and (mcause == {0x01, 0x07}): 0                                               #Write, Execute fault
-    #Add call_type as well for the complete coverage
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                              #No read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                             #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0     #execute fault
     #Check the napot region is accessed at least once    
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x99) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -30,8 +30,8 @@ PMP_NAPOT_x:
     pmpaddr{0 ... 3} != 0 and ((old("pmpaddr$1")) ^ (pmpaddr$1) != 0x00): 0                   #pmpaddr have been updated
   val_comb:
     # Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                             #No Execute fault
-    mode == 'M' and (mcause == {0x05, 0x07}): 0                                               #Read, Write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                            #No execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0    #read, write fault
     #Check the napot region is accessed at least once
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9C) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -46,8 +46,8 @@ PMP_NAPOT_rw:
     pmpaddr{0 ... 3} != 0 and ((old("pmpaddr$1")) ^ (pmpaddr$1) != 0x00): 0
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                     #No Read, Write fault
-    mode == 'M' and (mcause == 0x01): 0                                                       #Execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                     #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0     #execute fault
     #Check the napot region is accessed at least once    
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9B) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -62,8 +62,8 @@ PMP_NAPOT_rx:
     pmpaddr{0 ... 3} != 0 and ((old("pmpaddr$1")) ^ (pmpaddr$1) != 0x00): 0                   #pmpaddr have been updated
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                     #No read, Execute fault
-    mode == 'M' and (mcause == 0x07): 0                                                       #Write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}}): 0    #No read, Execute fault
+    mode == 'M' and (mcause == ${CAUSE_STORE_ACCESS}): 0                                      #Write fault
     #Check the napot region is accessed at least once    
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9D) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -78,25 +78,24 @@ PMP_NAPOT_rwx:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05, 0x07}): 0                               #No read, write or execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0  #No read, write or execute fault
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9F) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
-#TODO: The mcause check haven't been checked --> added later, so run the coverpoint one more time :)
 PMP_TOR_r:
   config:
     - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
   mnemonics:
     "{csrrs, csrrw, lw, sw}" : 0
   csr_comb:
-    ((pmpcfg0 >> 16) & {0x9C, 0x9A, 0x99}) == (0x89 & $1): 0                                  #Only Read Permission given
+    ((pmpcfg0 >> 16) & {0x8C, 0x8A, 0x89}) == (0x89 & $1): 0                                  #Only Read Permission given
     pmpcfg{0 ... 1} != 0 and ((old("pmpcfg$1")) ^ (pmpcfg$1) != 0x00): 0                      #pmpcfg have been updated
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                             #No read fault
-    mode == 'M' and (mcause == {0x01, 0x07}): 0                                               #write, execute fault
-    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))')
-    : 0
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                              #No read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                             #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0     #execute fault
+    '(mnemonic == "lw" or mnemonic == "sw") and (((pmpcfg0 >> 16) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr2 << 2)))': 0
 
 PMP_TOR_x:
   config:
@@ -109,11 +108,10 @@ PMP_TOR_x:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                             #No execute fault
-    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                     #Read, Write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                            #No execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0    #Read, Write fault
     #check for the read, write access
-    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))')
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and (((pmpcfg0 >> 16) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr2 << 2)))': 0
 
 PMP_TOR_rw:
   config:
@@ -126,10 +124,9 @@ PMP_TOR_rw:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                     #No read, write fault
-    mode == 'M' and (mcause == 0x01): 0                                                       #Execute fault
-    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))')
-    : 0
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                     #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0     #execute fault
+    '(mnemonic == "lw" or mnemonic == "sw") and (((pmpcfg0 >> 16) & 0x9F == 0x8B) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr2 << 2)))': 0
 
 PMP_TOR_rx:
   config:
@@ -142,11 +139,10 @@ PMP_TOR_rx:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                     #No read, execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                             #Write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}}): 0    #No read, execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                            #Write fault
     #check for the read, write access
-    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))')
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and (((pmpcfg0 >> 16) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr2 << 2)))': 0
 
 PMP_TOR_rwx:
   config:
@@ -159,11 +155,9 @@ PMP_TOR_rwx:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05, 0x07}): 0                               #No read, write, execute fault
-    ? (mnemonic == "lw" or mnemonic == "sw") and ('((pmpcfg0 >> 16) & 0x9F == 0x8F) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))')
-    : 0
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0 #No read, write, execute fault
+    '(mnemonic == "lw" or mnemonic == "sw") and (((pmpcfg0 >> 16) & 0x9F == 0x8F) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr2 << 2)))': 0
 
-#TODO: pmpcfg permissions checks added but not verified in the "check for the read, write access" for any NA4 coverpoint
 PMP_NA4_r:
   config:
     - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
@@ -175,12 +169,11 @@ PMP_NA4_r:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                             #No read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                             #Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0     #execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                             #No read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                            #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0    #execute fault
     #check for the read, write access
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr1 << 2))': 0
 
 PMP_NA4_x:
   config:
@@ -193,11 +186,10 @@ PMP_NA4_x:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                             #No execute fault
-    mode == {'M','S','U'} and (mcause == {0x05,  0x07}): 0                                    #read, write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                                            #No execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS},  ${CAUSE_STORE_ACCESS}}): 0                   #read, write fault
     #check for the read, write access
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr1 << 2))': 0
 
 PMP_NA4_rw:
   config:
@@ -210,11 +202,10 @@ PMP_NA4_rw:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05,  0x07}): 0                                    #No read, write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0     #execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS},  ${CAUSE_STORE_ACCESS}}): 0                    #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0     #execute fault
     #check for the read, write access
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr1 << 2))': 0
 
 PMP_NA4_rx:
   config:
@@ -227,11 +218,10 @@ PMP_NA4_rx:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                     #No read, execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                             #write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}}): 0                      #No read, execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                              #write fault
     #check for the read, write access
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr1 << 2))': 0
 
 PMP_NA4_rwx:
   config:
@@ -244,12 +234,10 @@ PMP_NA4_rwx:
     (old("pmpaddr{0 ... 3}")) ^ (pmpaddr$1) != 0x00: 0                                        #pmpaddr0 has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05, 0x07}): 0                               #No read, execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0 #No read, execute fault
     #check for the read, write access
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x97) and (rs1_val + imm_val == (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x97) and (rs1_val + imm_val == (pmpaddr1 << 2))': 0
 
-#TODO: The permisions were given in a wrong way to the pmpcfg coverpoints, they are updated, check them on the tests again
 PMP_TOR_priority_r:
   config:
     - check ISA:=regex(.*32.*); check ISA:=regex(.*I.*Zicsr.*);  def rvtest_mtrap_routine=True;
@@ -262,12 +250,11 @@ PMP_TOR_priority_r:
     (old("pmpaddr{2, 3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                   #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                             #No read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                             #Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0     #execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                             #No read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                            #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0    #execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))': 0
 
 PMP_TOR_priority_x:
   config:
@@ -281,11 +268,10 @@ PMP_TOR_priority_x:
     (old("pmpaddr{2, 3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                   #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                             #No read fault
-    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                     #Write, Execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                            #No execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0    #read, write fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))': 0
 
 PMP_TOR_priority_rw:
   config:
@@ -299,11 +285,10 @@ PMP_TOR_priority_rw:
     (old("pmpaddr{2, 3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                   #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                     #No read, write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0     #execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                     #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0     #execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8B) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8B) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))': 0
 
 PMP_TOR_priority_rx:
   config:
@@ -317,11 +302,10 @@ PMP_TOR_priority_rx:
     (old("pmpaddr{2, 3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                 #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                   #No read, execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}}): 0                   #No read, execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                           #Write fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr2 << 2)) and (rs1_val + imm_val < (pmpaddr3 << 2))': 0
 
 PMP_TOR_priority_r_level_2:
   config:
@@ -336,12 +320,11 @@ PMP_TOR_priority_r_level_2:
     (old("pmpaddr{2, 3, 14, 15, 0, 1}")) ^ (pmpaddr$1) != 0x00: 0                           #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                           #No read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                             #No read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                            #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0    #execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x89) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))': 0
 
 PMP_TOR_priority_rw_level_2:
   config:
@@ -356,11 +339,10 @@ PMP_TOR_priority_rw_level_2:
     (old("pmpaddr{2, 3, 14, 15, 0, 1}")) ^ (pmpaddr$1) != 0x00: 0                           #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                   #No read, write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0   #execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8B) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8B) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))': 0
 
 PMP_TOR_priority_x_level_2:
   config:
@@ -375,11 +357,10 @@ PMP_TOR_priority_x_level_2:
     (old("pmpaddr{2, 3, 14, 15, 0, 1}")) ^ (pmpaddr$1) != 0x00: 0                           #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                           #No execute fault
-    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                   #read, write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                                           #No execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #read, write fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8C) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))': 0
 
 PMP_TOR_priority_rx_level_2:
   config:
@@ -394,11 +375,10 @@ PMP_TOR_priority_rx_level_2:
     (old("pmpaddr{2, 3, 14, 15, 0, 1}")) ^ (pmpaddr$1) != 0x00: 0                           #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x01}): 0                                   #No read, execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_FETCH_ACCESS}}): 0                   #No read, execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                           #write fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8D) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))': 0
 
 PMP_TOR_priority_rwx_level_2:
   config:
@@ -413,10 +393,9 @@ PMP_TOR_priority_rwx_level_2:
     (old("pmpaddr{2, 3, 14, 15, 0, 1}")) ^ (pmpaddr$1) != 0x00: 0                           #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x01, 0x07}): 0                                           #No read, execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_FETCH_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0 #No read, execute fault
     #check for the accesses
-    ? (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8F) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))
-    : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x8F) and (rs1_val + imm_val >= (pmpaddr0 << 2)) and (rs1_val + imm_val < (pmpaddr1 << 2))': 0
 
 PMP_NAPOT_priority_r:
   config:
@@ -430,9 +409,9 @@ PMP_NAPOT_priority_r:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                           #No read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                            #No read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                           #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0   #execute fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x99) and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3 << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))': 0
 
@@ -448,8 +427,8 @@ PMP_NAPOT_priority_rw:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                   #No read, write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0   #execute fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x9B) and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3 << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))': 0
 
@@ -465,8 +444,8 @@ PMP_NAPOT_priority_x:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                           #No Execute fault
-    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                   #read, write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                                            #No Execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                    #read, write fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x9C) and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3 << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))': 0
 
@@ -482,8 +461,8 @@ PMP_NAPOT_priority_rx:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                   #No Read, Execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}}): 0                   #No Read, Execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                           #write fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x9D) and (rs1_val + imm_val >= (pmpaddr3 << 2)) and (rs1_val + imm_val < ((((((pmpaddr3 << 2) | 3) + 1) | (((pmpaddr3 << 2) | 3))) + 1)))': 0
 
@@ -500,9 +479,9 @@ PMP_NAPOT_priority_r_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                           #No read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                             #No read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                            #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0    #execute fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x99) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -519,8 +498,8 @@ PMP_NAPOT_priority_rw_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                   #No read, write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #No read, write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0   #execute fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9B) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -537,8 +516,8 @@ PMP_NAPOT_priority_x_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                           #No execute fault
-    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                   #Read, write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                                            #No execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                    #Read, write fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9C) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -555,8 +534,8 @@ PMP_NAPOT_priority_rx_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                   #No read, execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Read, write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}}): 0                   #No read, execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                           #Read, write fault
     #check for the accesses
     '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x9D) and (rs1_val + imm_val >= (pmpaddr1 << 2)) and (rs1_val + imm_val < ((((((pmpaddr1 << 2) | 3) + 1) | (((pmpaddr1 << 2) | 3))) + 1)))': 0
 
@@ -572,11 +551,11 @@ PMP_NA4_priority_r:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                           #No Read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                           #No Read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                          #write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0  #execute fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr3 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr3 << 2))' : 0
 
 PMP_NA4_priority_rw:
   config:
@@ -590,10 +569,10 @@ PMP_NA4_priority_rw:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                   #No Read, Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #No Read, Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0   #execute fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr3 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr3 << 2))' : 0
 
 PMP_NA4_priority_x:
   config:
@@ -607,10 +586,10 @@ PMP_NA4_priority_x:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                           #No Execute fault
-    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                   #Read, Write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                                           #No Execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #Read, Write fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr3 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr3 << 2))' : 0
 
 PMP_NA4_priority_rx:
   config:
@@ -624,10 +603,10 @@ PMP_NA4_priority_rx:
     (old("pmpaddr{3, 14, 15}")) ^ (pmpaddr$1) != 0x00: 0                                    #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x01, 0x05}): 0                                   #No Read, Execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_FETCH_ACCESS}, ${CAUSE_LOAD_ACCESS}}): 0                   #No Read, Execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                           #Write fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr3 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 24) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr3 << 2))' : 0
 
 PMP_NA4_priority_r_level_2:
   config:
@@ -642,11 +621,11 @@ PMP_NA4_priority_r_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x05): 0                                           #No Read fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_LOAD_ACCESS}): 0                                             #No Read fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                            #Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0    #execute fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr1 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x91) and (rs1_val + imm_val == (pmpaddr1 << 2))' : 0
 
 PMP_NA4_priority_rw_level_2:
   config:
@@ -661,10 +640,10 @@ PMP_NA4_priority_rw_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05, 0x07}): 0                                   #No Read, Write fault
-    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == 0x01): 0   #execute fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #No Read, Write fault
+    mode == 'M' and mode_change == {'M to M', 'U to M', 'S to M'} and (mcause == ${CAUSE_FETCH_ACCESS}): 0   #execute fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr1 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x93) and (rs1_val + imm_val == (pmpaddr1 << 2))' : 0
 
 PMP_NA4_priority_x_level_2:
   config:
@@ -679,10 +658,10 @@ PMP_NA4_priority_x_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != 0x01): 0                                           #No Execute fault
-    mode == {'M','S','U'} and (mcause == {0x05, 0x07}): 0                                   #Read, Write fault
+    mode == {'M','S','U'} and (mcause != ${CAUSE_FETCH_ACCESS}): 0                                           #No Execute fault
+    mode == {'M','S','U'} and (mcause == {${CAUSE_LOAD_ACCESS}, ${CAUSE_STORE_ACCESS}}): 0                   #Read, Write fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr1 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x94) and (rs1_val + imm_val == (pmpaddr1 << 2))' : 0
 
 PMP_NA4_priority_rx_level_2:
   config:
@@ -697,10 +676,10 @@ PMP_NA4_priority_rx_level_2:
     (old("pmpaddr{2, 3, 14, 15, 1}")) ^ (pmpaddr$1) != 0x00: 0                              #pmpaddr has been used and updated from the previous value i.e., 0x000
   val_comb:
     #Test for exceptions
-    mode == {'M','S','U'} and (mcause != {0x05,0x01}): 0                                    #No Read, Execute fault
-    mode == {'M','S','U'} and (mcause == 0x07): 0                                           #Write fault
+    mode == {'M','S','U'} and (mcause != {${CAUSE_LOAD_ACCESS},${CAUSE_FETCH_ACCESS}}): 0                    #No Read, Execute fault
+    mode == {'M','S','U'} and (mcause == ${CAUSE_STORE_ACCESS}): 0                                           #Write fault
     #check for the accesses
-    (mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr1 << 2)) : 0
+    '(mnemonic == "lw" or mnemonic == "sw") and ((pmpcfg0 >> 8) & 0x9F == 0x95) and (rs1_val + imm_val == (pmpaddr1 << 2))' : 0
 
 pmp_cfg_locked_write_unrelated:
   config:
@@ -708,9 +687,8 @@ pmp_cfg_locked_write_unrelated:
   mnemonics:
     "{csrrs, csrrw, lw, sw}" : 0
   csr_comb:
-                                                                                                              #other writes are ignored
-    (pmpcfg{0 ... 3}  >> {0, 8, 16, 24} & 0x80 == 0x80) and ((old("pmpcfg$1") & (0xFF << $2)) ^ (pmpcfg$1 & (0xFF << $2)) == 0x00): 0 
-    ((old("pmpaddr{0 ... 15}")) ^ (pmpaddr$1) == 0x00) and (pmpcfg{0,1,2,3}{[$1/4]} >> {0, 8, 16, 24}{[$1/4]} & 0x80 == 0x80): 0                                 #any other write ignored
+    (pmpcfg{0 ... 3}  >> {0, 8, 16, 24} & 0x80 == 0x80) and ((old("pmpcfg$1") & (0xFF << $2)) ^ (pmpcfg$1 & (0xFF << $2)) == 0x00) and old("pmpcfg$1") != 0: 0 
+    ((old("pmpaddr{0 ... 15}")) ^ (pmpaddr$1) == 0x00) and (pmpcfg{0,1,2,3}{[$1/4]} >> {0, 8, 16, 24}{[$1/4]} & 0x80 == 0x80): 0
 
 PMP_access_permission:
   config:
@@ -718,7 +696,7 @@ PMP_access_permission:
   mnemonics:
     "{csrrs, csrrw, lw, sw}" : 0
   csr_comb:
-    mode == 'M' and (((old("pmpcfg{0 ... 3}") ^ (pmpcfg$1)) != 0x00) and pmpcfg$1 != 0x0): 0        #pmpcfg successfully updated in M mode
-    mode == 'M' and (((old("pmpaddr{0 ... 15}") ^ (pmpaddr$1)) != 0x00) and pmpaddr$1 != 0x0): 0    #pmpaddr successfully updated in M mode
+    mode == 'M' and (((old("pmpcfg{0 ... 3}") ^ (pmpcfg$1)) != 0x00) and pmpcfg$1 != 0x0): 0            #pmpcfg successfully updated in M mode
+    mode == 'M' and (((old("pmpaddr{0 ... 15}") ^ (pmpaddr$1)) != 0x00) and pmpaddr$1 != 0x0): 0        #pmpaddr successfully updated in M mode
   val_comb:
-    mnemonic == {"csrrs", "csrrw"} and mode == {'S', 'U'} and mcause == 0x02: 0                     #check for illegal instruction fault
+    mnemonic == {"csrrs", "csrrw"} and mode == {'S', 'U'} and mcause == ${CAUSE_ILLEGAL_INSTRUCTION}: 0 #check for illegal instruction fault
